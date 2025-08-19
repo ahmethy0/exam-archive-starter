@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>National Exams Archive</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+    .card:hover { transform: translateY(-2px); }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-900">
+  <header class="sticky top-0 z-10 bg-white border-b">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+      <h1 class="text-xl sm:text-2xl font-bold">National Exams Archive</h1>
+      <a href="about.html" target="_self" class="text-sm text-blue-600 hover:underline">About</a>
+     
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-8">
+    <!-- Hero -->
+    <section class="text-center mb-8">
+      <h2 class="text-2xl sm:text-4xl font-bold mb-3">Access 15 years of past papers</h2>
+      <p class="text-gray-600 mb-6">Search by subject, year, or keyword. Download instantly.</p>
+      <div class="flex gap-2 max-w-2xl mx-auto">
+        <input id="q" type="search" placeholder="Search e.g. 'Chemistry 2020'"
+               class="flex-1 rounded-xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        <button id="searchBtn" class="rounded-xl px-4 py-3 bg-blue-600 text-white font-semibold hover:bg-blue-700">Search</button>
+      </div>
+    </section>
+
+    <!-- Filters -->
+    <section class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+      <select id="subject" class="rounded-xl border px-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <option value="">All Subjects</option>
+      </select>
+      <select id="year" class="rounded-xl border px-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <option value="">All Years</option>
+      </select>
+      <select id="scheme" class="rounded-xl border px-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <option value="">With/Without Mark Scheme</option>
+        <option value="true">With Mark Scheme</option>
+        <option value="false">Without Mark Scheme</option>
+      </select>
+    </section>
+
+    <!-- Results -->
+    <section>
+      <div id="count" class="text-sm text-gray-600 mb-3"></div>
+      <div id="grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+    </section>
+  </main>
+
+  <footer class="border-t mt-12">
+    <div class="max-w-6xl mx-auto px-4 py-6 text-sm text-gray-600">
+      © <span id="yearNow"></span> Exams Archive. Built for students.
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+  <script>
+    document.getElementById('yearNow').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
