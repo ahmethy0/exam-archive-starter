@@ -13,6 +13,50 @@
     body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
     .card:hover { transform: translateY(-2px); }
   </style>
+  <select id="langSwitcher" class="ml-4 border rounded p-1">
+  <option value="en">English</option>
+  <option value="so">Somali</option>
+</select>
+<header>
+  <!-- Logo / Title -->
+  <h1 data-i18n="title">Exam Archive</h1>
+
+  <!-- Navigation -->
+  <nav>
+    <a href="index.html">Home</a> <!-- stays English -->
+    <a href="about.html">About</a> <!-- stays English -->
+  </nav>
+
+  <!-- Language Switch -->
+  <select id="lang">
+    <option value="en">English</option>
+    <option value="so">Somali</option>
+  </select>
+</header>
+
+<!-- Filters -->
+<div>
+  <label data-i18n="subject">Subject</label>
+  <select id="subject"></select>
+
+  <label data-i18n="year">Year</label>
+  <select id="year"></select>
+
+  <label data-i18n="scheme">Mark Scheme</label>
+  <select id="scheme">
+    <option value="">--</option>
+    <option value="true" data-i18n="includesMarkScheme">Includes Mark Scheme</option>
+    <option value="false" data-i18n="noMarkScheme">No Mark Scheme</option>
+  </select>
+
+  <input type="text" id="q" placeholder="Search..." data-i18n-placeholder="search">
+  <button id="searchBtn" data-i18n="search">Search</button>
+</div>
+
+<!-- Results -->
+<div id="count" data-i18n="results">0 results</div>
+<div id="grid"></div>
+
 </head>
 <body class="bg-gray-50 text-gray-900">
   <header class="sticky top-0 z-10 bg-white border-b">

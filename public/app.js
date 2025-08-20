@@ -91,4 +91,36 @@ searchBtn.addEventListener('click', fetchExams);
 qEl.addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ fetchExams(); } });
 
 // Init
-loadExams();
+function render(items) {
+  grid.innerHTML = '';
+  if (!items.length) {
+    grid.innerHTML = '<div class="text-gray-600" data-i18n="noResults">No exams found. Try different filters.</div>';
+    return;
+  }
+
+  for (const e of items) {
+    const card = document.createElement('a');
+    card.href = e.file;
+    card.target = "_blank";
+    card.className = 'card block rounded-2xl border bg-white p-5 shadow-sm hover:shadow-md transition';
+    card.innerHTML = `
+      <div class="flex items-start justify-between">
+        <div>
+          <div class="text-xs uppercase tracking-wide text-gray-500">${e.subject}</div>
+          <div class="text-lg font-semibold mt-1">${e.title}</div>
+        </div>
+        <div class="text-sm font-semibold text-blue-600">${e.year}</div>
+      </div>
+      <div class="mt-4 flex items-center justify-between">
+        <div class="text-sm ${e.hasMarkScheme ? 'text-emerald-600' : 'text-gray-500'}"
+             data-i18n="${e.hasMarkScheme ? 'includesMarkScheme' : 'noMarkScheme'}">
+          ${e.hasMarkScheme ? 'Includes Mark Scheme' : 'No Mark Scheme'}
+        </div>
+        <button class="rounded-lg bg-blue-600 text-white text-sm px-3 py-2">
+          Download
+        </button>
+      </div>
+    `;
+    grid.appendChild(card);
+  }
+}

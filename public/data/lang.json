@@ -1,0 +1,24 @@
+{
+  "en": {
+    "title": "Exam Archive",
+    "subject": "Subject",
+    "year": "Year",
+    "scheme": "Mark Scheme",
+    "search": "Search",
+    "includesMarkScheme": "Includes Mark Scheme",
+    "noMarkScheme": "No Mark Scheme",
+    "results": "results",
+    "noResults": "No exams found. Try different filters."
+  },
+  "so": {
+    "title": "Kaydka Imtixaannada",
+    "subject": "Maadada",
+    "year": "Sanadka",
+    "scheme": "Jawaabaha",
+    "search": "Raadi",
+    "includesMarkScheme": "Jawaabaha ayuu leeyahay",
+    "noMarkScheme": "Jawaabo ma laha",
+    "results": "natiijo",
+    "noResults": "Imtixaan lama helin. Raadi markale."
+  }
+}
