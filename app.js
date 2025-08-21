@@ -13,12 +13,13 @@ let translations = {};
 // Load translations
 async function loadTranslations() {
   try {
-    const res = await fetch('lang.json');
-    if (!res.ok) throw new Error('Failed to load translations');
+    const res = await fetch('/data/lang.json');
+    if (!res.ok) throw new Error(`Failed to load translations: ${res.status} ${res.statusText}`);
     translations = await res.json();
     updateLanguage();
   } catch (error) {
     console.error('Error loading translations:', error);
+    grid.innerHTML = `<div class="text-red-600">Error loading translations: ${error.message}</div>`;
   }
 }
 
@@ -28,7 +29,7 @@ function updateLanguage() {
     const key = el.getAttribute('data-i18n');
     if (key === 'results') {
       const count = parseInt(countEl.textContent) || 0;
-      el.textContent = translations[currentLang][key].replace('{n}', count);
+      el.textContent = translations[currentLang][key]?.replace('{n}', count) || el.textContent;
     } else {
       el.textContent = translations[currentLang][key] || el.textContent;
     }
@@ -40,14 +41,13 @@ function updateLanguage() {
 async function loadExams() {
   grid.innerHTML = '<div class="text-gray-600" data-i18n="loading">Loading...</div>';
   try {
-    const res = await fetch('data/exams.json');
-    if (!res.ok) throw new Error('Failed to load exams');
+    const res = await fetch('/data/exams.json');
+    if (!res.ok) throw new Error(`Failed to load exams: ${res.status} ${res.statusText}`);
     exams = await res.json();
-    // Validate exam data
     exams = exams.filter(e => e.id && e.subject && e.year && e.title && e.file && typeof e.hasMarkScheme === 'boolean');
     initFilters();
   } catch (error) {
-    grid.innerHTML = '<div class="text-red-600" data-i18n="error">Error loading exams. Please try again later.</div>';
+    grid.innerHTML = `<div class="text-red-600" data-i18n="error">Error loading exams: ${error.message}. Please try again later.</div>`;
     console.error('Error loading exams:', error);
   }
 }
@@ -57,12 +57,12 @@ function initFilters() {
   const subjects = Array.from(new Set(exams.map(i => i.subject))).sort();
   const years = Array.from(new Set(exams.map(i => i.year))).sort((a, b) => b - a);
 
-  subjectEl.innerHTML = `<option value="" data-i18n="allSubjects">${translations[currentLang].allSubjects}</option>`;
-  yearEl.innerHTML = `<option value="" data-i18n="allYears">${translations[currentLang].allYears}</option>`;
+  subjectEl.innerHTML = `<option value="" data-i18n="allSubjects">${translations[currentLang]?.allSubjects || 'All Subjects'}</option>`;
+  yearEl.innerHTML = `<option value="" data-i18n="allYears">${translations[currentLang]?.allYears || 'All Years'}</option>`;
   schemeEl.innerHTML = `
-    <option value="" data-i18n="allSchemes">${translations[currentLang].allSchemes}</option>
-    <option value="true" data-i18n="includesMarkScheme">${translations[currentLang].includesMarkScheme}</option>
-    <option value="false" data-i18n="noMarkScheme">${translations[currentLang].noMarkScheme}</option>
+    <option value="" data-i18n="allSchemes">${translations[currentLang]?.allSchemes || 'With/Without Mark Scheme'}</option>
+    <option value="true" data-i18n="includesMarkScheme">${translations[currentLang]?.includesMarkScheme || 'With Mark Scheme'}</option>
+    <option value="false" data-i18n="noMarkScheme">${translations[currentLang]?.noMarkScheme || 'Without Mark Scheme'}</option>
   `;
 
   for (const s of subjects) {
@@ -99,7 +99,7 @@ function fetchExams() {
   );
 
   render(filtered);
-  countEl.textContent = translations[currentLang].results.replace('{n}', filtered.length);
+  countEl.textContent = translations[currentLang]?.results?.replace('{n}', filtered.length) || `${filtered.length} results`;
   updateLanguage();
 }
 
@@ -107,7 +107,7 @@ function fetchExams() {
 function render(items) {
   grid.innerHTML = '';
   if (!items.length) {
-    grid.innerHTML = `<div class="text-gray-600" data-i18n="noResults">${translations[currentLang].noResults}</div>`;
+    grid.innerHTML = `<div class="text-gray-600" data-i18n="noResults">${translations[currentLang]?.noResults || 'No exams found. Try different filters.'}</div>`;
     return;
   }
 
@@ -127,12 +127,12 @@ function render(items) {
       <div class="mt-4 flex items-center justify-between">
         <div class="text-sm ${e.hasMarkScheme ? 'text-emerald-600' : 'text-gray-500'}" 
              data-i18n="${e.hasMarkScheme ? 'includesMarkScheme' : 'noMarkScheme'}">
-          ${translations[currentLang][e.hasMarkScheme ? 'includesMarkScheme' : 'noMarkScheme']}
+          ${translations[currentLang]?.[e.hasMarkScheme ? 'includesMarkScheme' : 'noMarkScheme'] || (e.hasMarkScheme ? 'Includes Mark Scheme' : 'No Mark Scheme')}
         </div>
         <button class="rounded-lg bg-blue-600 text-white text-sm px-3 py-2" 
                 aria-label="Download ${e.title} ${e.year}" 
                 data-i18n="download">
-          ${translations[currentLang].download}
+          ${translations[currentLang]?.download || 'Download'}
         </button>
       </div>
     `;

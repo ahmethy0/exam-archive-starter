@@ -15,7 +15,7 @@
     "results": "{n} results",
     "noResults": "No exams found. Try different filters.",
     "loading": "Loading...",
-    "error": "Error loading exams. Please try again later.",
+    "error": "Error loading exams: {message}. Please try again later.",
     "footer": "© Exams Archive. Built for students."
   },
   "so": {
@@ -34,7 +34,7 @@
     "results": "{n} natiijo",
     "noResults": "Imtixaan lama helin. Raadi markale.",
     "loading": "Soo dejinaya...",
-    "error": "Khalad ayaa dhacay markii la raray imtixaannada. Fadlan isku day mar kale.",
+    "error": "Khalad ayaa dhacay: {message}. Fadlan isku day mar kale.",
     "footer": "© Kaydka Imtixaannada. Loogu talagalay ardayda."
   }
 }
