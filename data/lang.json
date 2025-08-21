@@ -1,6 +1,6 @@
 {
   "en": {
-    "title": "Exam Archive",
+    "title": " Kaaliye Exam Archive",
     "description": "Access 15 years of past papers. Search by subject, year, or keyword.",
     "subject": "Subject",
     "year": "Year",
@@ -19,17 +19,17 @@
     "footer": "© Exams Archive. Built for students."
   },
   "so": {
-    "title": "Kaydka Imtixaannada",
+    "title": "Kaydka Imtixaannada ee KAALIYE",
     "description": "Hel 15 sano oo waraaqo imtixaan ah. Raadi maadada, sanadka, ama erayga muhiimka ah.",
     "subject": "Maadada",
     "year": "Sanadka",
     "scheme": "Jawaabaha",
     "search": "Raadi",
-    "download": "Soodeji",
+    "download": "Lasoo-dag",
     "allSubjects": "Dhammaan Maadooyinka",
-    "allYears": "Dhammaan Sanadaha",
-    "allSchemes": "Iyadoo leh ama aan lahayn Jawaabaha",
-    "includesMarkScheme": "Jawaabaha ayuu leeyahay",
+    "allYears": "Dhammaan Sanadada",
+    "allSchemes": "Leh ama an lahayn jawaabo",
+    "includesMarkScheme": "Jawaabo ayuu leeyahay",
     "noMarkScheme": "Jawaabo ma laha",
     "results": "{n} natiijo",
     "noResults": "Imtixaan lama helin. Raadi markale.",
