@@ -1,7 +1,7 @@
 {
   "en": {
-    "title": " Kaaliye Exam Archive",
-    "description": "Access 15 years of past papers. Search by subject, year, or keyword.",
+    "title": "Kaaliye EXAMS",
+    "description": "Kaaliye Exams Archive: Access 10 years of past papers. Search by subject, year, or keyword.",
     "subject": "Subject",
     "year": "Year",
     "scheme": "Mark Scheme",
@@ -16,25 +16,25 @@
     "noResults": "No exams found. Try different filters.",
     "loading": "Loading...",
     "error": "Error loading exams: {message}. Please try again later.",
-    "footer": "© Exams Archive. Built for students."
+    "footer": "© Kaaliye Exams Archive. Built for students."
   },
   "so": {
-    "title": "Kaydka Imtixaannada ee KAALIYE",
-    "description": "Hel 15 sano oo waraaqo imtixaan ah. Raadi maadada, sanadka, ama erayga muhiimka ah.",
+    "title": "Kaaliye Imtixaannada",
+    "description": "Kaaliye Kaydka Imtixaannada: Hel 10 sano oo waraaqo imtixaan ah. Raadi maadada, sanadka, ama erayga muhiimka ah.",
     "subject": "Maadada",
     "year": "Sanadka",
     "scheme": "Jawaabaha",
     "search": "Raadi",
-    "download": "Lasoo-dag",
+    "download": "Soodeji",
     "allSubjects": "Dhammaan Maadooyinka",
-    "allYears": "Dhammaan Sanadada",
-    "allSchemes": "Leh ama an lahayn jawaabo",
-    "includesMarkScheme": "Jawaabo ayuu leeyahay",
+    "allYears": "Dhammaan Sanadaha",
+    "allSchemes": "Iyadoo leh ama aan lahayn Jawaabaha",
+    "includesMarkScheme": "Jawaabaha ayuu leeyahay",
     "noMarkScheme": "Jawaabo ma laha",
     "results": "{n} natiijo",
     "noResults": "Imtixaan lama helin. Raadi markale.",
     "loading": "Soo dejinaya...",
     "error": "Khalad ayaa dhacay: {message}. Fadlan isku day mar kale.",
-    "footer": "© Kaydka Imtixaannada. Loogu talagalay ardayda."
+    "footer": "© Kaaliye Kaydka Imtixaannada. Loogu talagalay ardayda."
   }
 }

@@ -10,16 +10,31 @@ let exams = [];
 let currentLang = 'en';
 let translations = {};
 
+// Retry fetch with delay
+async function fetchWithRetry(url, retries = 3, delay = 1000) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+      return await res.json();
+    } catch (error) {
+      if (i < retries - 1) {
+        await new Promise(resolve => setTimeout(resolve, delay));
+        continue;
+      }
+      throw error;
+    }
+  }
+}
+
 // Load translations
 async function loadTranslations() {
   try {
-    const res = await fetch('/data/lang.json');
-    if (!res.ok) throw new Error(`Failed to load translations: ${res.status} ${res.statusText}`);
-    translations = await res.json();
+    translations = await fetchWithRetry('/data/lang.json');
     updateLanguage();
   } catch (error) {
     console.error('Error loading translations:', error);
-    grid.innerHTML = `<div class="text-red-600">Error loading translations: ${error.message}</div>`;
+    grid.innerHTML = `<div class="text-red-600">Error loading translations: ${error.message}. Using default text.</div>`;
   }
 }
 
@@ -29,9 +44,9 @@ function updateLanguage() {
     const key = el.getAttribute('data-i18n');
     if (key === 'results') {
       const count = parseInt(countEl.textContent) || 0;
-      el.textContent = translations[currentLang][key]?.replace('{n}', count) || el.textContent;
+      el.textContent = translations[currentLang]?.[key]?.replace('{n}', count) || `${count} results`;
     } else {
-      el.textContent = translations[currentLang][key] || el.textContent;
+      el.textContent = translations[currentLang]?.[key] || el.textContent;
     }
   });
   document.documentElement.lang = currentLang;
@@ -41,9 +56,7 @@ function updateLanguage() {
 async function loadExams() {
   grid.innerHTML = '<div class="text-gray-600" data-i18n="loading">Loading...</div>';
   try {
-    const res = await fetch('/data/exams.json');
-    if (!res.ok) throw new Error(`Failed to load exams: ${res.status} ${res.statusText}`);
-    exams = await res.json();
+    exams = await fetchWithRetry('/data/exams.json');
     exams = exams.filter(e => e.id && e.subject && e.year && e.title && e.file && typeof e.hasMarkScheme === 'boolean');
     initFilters();
   } catch (error) {
