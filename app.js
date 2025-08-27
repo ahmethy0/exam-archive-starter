@@ -138,6 +138,7 @@ function fetchExams() {
 }
 
 // Render exam cards (clean design)
+// Render exam cards (modern clean design with light/dark modes)
 function render(items) {
   grid.innerHTML = '';
   if (!items.length) {
@@ -147,6 +148,54 @@ function render(items) {
     return;
   }
 
+  items.forEach(e => {
+    const card = document.createElement('div');
+    card.className = `
+      group relative bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 
+      dark:border-gray-700 shadow-sm hover:shadow-xl hover:-translate-y-1 
+      transition-all duration-200 p-6 flex flex-col justify-between
+    `;
+
+    card.innerHTML = `
+      <!-- Top: Subject + Badge -->
+      <div class="flex items-center justify-between">
+        <span class="text-sm font-semibold text-blue-600 dark:text-blue-400 flex items-center gap-1">
+          📘 ${e.subject}
+        </span>
+        <span class="text-xs px-2 py-1 rounded-full ${
+          e.hasMarkScheme 
+            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-800 dark:text-emerald-300' 
+            : 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
+        }">
+          ${e.hasMarkScheme ? 'With Mark Scheme' : 'No Scheme'}
+        </span>
+      </div>
+
+      <!-- Middle: Title & Year -->
+      <div class="mt-4">
+        <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100 group-hover:text-blue-600">
+          ${e.title}
+        </h3>
+        <p class="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
+          📅 ${e.year}
+        </p>
+      </div>
+
+      <!-- Bottom: CTA -->
+      <div class="mt-6">
+        <a href="${e.file}" target="_blank"
+          class="block w-full text-center rounded-xl bg-blue-600 text-white py-2 text-sm font-medium hover:bg-blue-700 transition">
+          📥 Download
+        </a>
+      </div>
+    `;
+
+    grid.appendChild(card);
+  });
+
+  countEl.textContent = `${items.length} results`;
+  countEl.classList.remove("hidden");
+}
   for (const e of items) {
     const card = document.createElement('a');
     card.href = e.file;
@@ -167,7 +216,7 @@ function render(items) {
     `;
     grid.appendChild(card);
   }
-}
+
 
 // Reset filters
 function resetFilters() {
