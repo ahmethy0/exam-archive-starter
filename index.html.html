@@ -1,266 +1,118 @@
-<!DOCTYPE html>
+You said:
+<script type="text/javascript"> 
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Kaaliye Exams Archive: Download past papers for Mathematics, English, and more in English and Somali.">
+  <meta name="keywords" content="exam papers, past papers, national exams, Somalia, education">
   <title data-i18n="title">Kaaliye EXAMS</title>
-  <meta name="description" content="Kaaliye Exams Archive: Download past papers in English and Somali.">
-  <link rel="icon" href="large.png" />
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <meta name="google-site-verification" content="pzdkzzzhDsomKEqSvV0lVtSrW-YCoh-eNl7LcR13dEg" />
+  <link rel="icon" type="image/png" href="large.png">
+<!-- Open Graph (for WhatsApp, Telegram, Facebook, etc.) -->
+<meta property="og:title" content="Kaaliye Exams">
+<meta property="og:description" content="Search and view exams easily.">
+<meta property="og:image" content="https://kaaliyeexams.vercel.app/large.png">
+<meta property="og:url" content="https://kaaliyeexams.vercel.app">
+<meta property="og:type" content="website">
 
-  <style>
-    /* ===== Layout & header ===== */
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:Segoe UI,Arial,sans-serif;background:#f5f7fa;color:#222;line-height:1.45}
-    header{background:#0d47a1;color:#fff;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;gap:10px;position:sticky;top:0;z-index:1000}
-    .brand{display:flex;align-items:center;gap:12px}
-    .brand h1{font-size:1.1rem;letter-spacing:1px}
-    nav{display:flex;gap:12px;align-items:center}
-    nav a{color:#e3f2fd;text-decoration:none;padding:8px 10px;border-radius:6px}
-    nav a:hover{background:rgba(255,255,255,0.06)}
-    .lang-links a{margin-left:8px;color:#fff;cursor:pointer;text-decoration:underline}
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Kaaliye Exams">
+<meta name="twitter:description" content="Search and view exams easily.">
+<meta name="twitter:image" content="https://kaaliyeexams.vercel.app/large.png">
 
-    /* ===== Hero ===== */
-    .hero{padding:60px 18px 28px;text-align:center;background:linear-gradient(135deg,#1a237e,#0d47a1);color:#fff}
-    .hero h2{font-size:2rem;margin-bottom:8px}
-    .hero p{color:#cfe0ff;margin-bottom:18px}
-
-    /* ===== Filters (kept) ===== */
-    .filters{max-width:980px;margin:0 auto;background:#fff;padding:16px;border-radius:12px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;box-shadow:0 6px 20px rgba(13,71,161,0.08);transform:translateY(-28px)}
-    .filters select, .filters button{padding:10px 12px;border-radius:10px;border:1px solid #d0d7de;font-size:1rem;min-width:160px}
-    .filters button{background:#0d47a1;color:#fff;border:0;cursor:pointer}
-    .filters button:hover{background:#155bbb}
-
-    /* ===== Results placeholders ===== */
-    #count{max-width:1100px;margin:18px auto 8px;text-align:center;color:#444;font-weight:600}
-    #grid{max-width:1100px;margin:0 auto 40px;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;padding:0 18px}
-
-    /* ===== Exam card ===== */
-    .exam-card{background:#fff;padding:14px;border-radius:10px;box-shadow:0 6px 15px rgba(0,0,0,0.06);transition:transform .16s}
-    .exam-card:hover{transform:translateY(-6px)}
-    .exam-card h3{color:#0d47a1;font-size:1.05rem;margin-bottom:6px}
-    .exam-meta{font-size:.9rem;color:#555;margin-bottom:8px}
-    .exam-actions{display:flex;gap:8px;flex-wrap:wrap}
-    .btn{padding:8px 10px;border-radius:8px;border:1px solid #0d47a1;background:transparent;color:#0d47a1;cursor:pointer;text-decoration:none}
-    .btn.primary{background:#0d47a1;color:#fff;border:0}
-
-    /* ===== Popular subjects ===== */
-    .subjects{max-width:1100px;margin:32px auto;padding:0 18px}
-    .subject-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px}
-    .subject-card{background:#fff;padding:28px;border-radius:12px;text-align:center;color:#0d47a1;font-weight:600;box-shadow:0 6px 18px rgba(0,0,0,0.06);cursor:pointer}
-
-    /* ===== Footer ===== */
-    footer{background:#0d47a1;color:#fff;padding:18px;text-align:center;margin-top:34px}
-
-    /* ===== Chat modal ===== */
-    .chat-fab{position:fixed;right:18px;bottom:18px;background:#0d47a1;color:#fff;border-radius:999px;padding:12px 14px;cursor:pointer;box-shadow:0 8px 18px rgba(13,71,161,0.18);z-index:1200}
-    .chat-modal{position:fixed;right:18px;bottom:76px;width:320px;max-height:72vh;background:#fff;border-radius:12px;box-shadow:0 18px 40px rgba(0,0,0,.15);display:flex;flex-direction:column;overflow:hidden;z-index:1200}
-    .chat-header{background:#0d47a1;color:#fff;padding:12px;display:flex;justify-content:space-between;align-items:center}
-    .chat-body{padding:12px;flex:1;overflow:auto;background:#f7f9fc}
-    .chat-footer{padding:10px;border-top:1px solid #eee;display:flex;gap:8px}
-    .chat-input{flex:1;padding:8px;border:1px solid #ddd;border-radius:8px}
-    .hidden{display:none}
-    @media(max-width:520px){
-      .filters{flex-direction:column;transform:translateY(-16px)}
-      .chat-modal{right:10px;left:10px;width:auto}
-    }
-  </style>
 </head>
-<body>
-  <header>
-    <div class="brand">
-      <h1 data-i18n="title">Kaaliye EXAMS</h1>
-      <small style="opacity:.9">Helping students succeed</small>
+<body class="min-h-screen flex flex-col bg-gray-100">
+  <header class="bg-blue-600 text-white p-4">
+    <div class="container mx-auto flex justify-between items-center">
+      <h1 class="text-2xl font-bold" data-i18n="title">Kaaliye EXAMS</h1>
+      <div>
+        <a href="#" data-lang="en" role="button" aria-label="Switch to English" class="mr-4 hover:underline">English</a>
+        <a href="#" data-lang="so" role="button" aria-label="Switch to Somali" class="hover:underline">Somali</a>
+      </div>
     </div>
-
-    <nav aria-label="Main navigation">
-      <a href="index.html.html" id="nav-home" data-i18n="navHome">Home</a>
-      <a href="avoyt.html" id="nav-about" data-i18n="navAbout">About</a>
-      <a href="avoyt.html" id="nav-contact" data-i18n="navContact">Contact</a>
-      <span class="lang-links" style="margin-left:8px">
-        <a href="#" data-lang="en" aria-label="Switch to English">EN</a>
-        <a href="#" data-lang="so" aria-label="Switch to Somali">SO</a>
-      </span>
-    </nav>
   </header>
-
-  <section class="hero" aria-hidden="false">
-    <h2 data-i18n="heroTitle">Access Past Papers Instantly</h2>
-    <p data-i18n="heroDesc">Search and download exams & mark schemes with ease.</p>
-
-    <!-- Filters row: keep selects + Search button (no visible text input) -->
-    <div class="filters" role="search" aria-label="Exam filters">
-      <select id="subject" name="subject" aria-label="Subject">
-        <option value="">All Subjects</option>
-        <!-- app.js should populate more options if available -->
-      </select>
-
-      <select id="year" name="year" aria-label="Year">
-        <option value="">All Years</option>
-      </select>
-
-      <select id="scheme" name="scheme" aria-label="Mark scheme">
-        <option value="">With/Without Mark Scheme</option>
-        <option value="true">With Mark Scheme</option>
-        <option value="false">Without Mark Scheme</option>
-      </select>
-
-      <button id="searchBtn" type="button" aria-label="Search exams">🔍 Search</button>
-
-      <!-- Hidden #q kept to satisfy older app.js references -->
-      <input id="q" type="text" value="" style="display:none" aria-hidden="true" tabindex="-1" />
+  <main class="container mx-auto p-4 flex-grow">
+    <section class="my-8 text-center">
+      <h2 class="text-3xl font-bold" data-i18n="title">Kaaliye EXAMS</h2>
+      <p class="mt-2 text-gray-600" data-i18n="description">Access 10 years of past papers. Search by subject, year, or keyword.</p>
+    </section>
+    <div class="flex flex-wrap gap-4 mb-8">
+      <div class="w-full sm:w-auto">
+        <label for="subject" class="block text-sm font-medium text-gray-700" data-i18n="subject">Subject</label>
+        <select id="subject" name="subject" class="border rounded-lg p-2 w-full sm:w-48">
+          <option value="" data-i18n="allSubjects">All Subjects</option>
+        </select>
+      </div>
+      <div class="w-full sm:w-auto">
+        <label for="year" class="block text-sm font-medium text-gray-700" data-i18n="year">Year</label>
+        <select id="year" name="year" class="border rounded-lg p-2 w-full sm:w-48">
+          <option value="" data-i18n="allYears">All Years</option>
+        </select>
+      </div>
+      <div class="w-full sm:w-auto">
+        <label for="scheme" class="block text-sm font-medium text-gray-700" data-i18n="scheme">Mark Scheme</label>
+        <select id="scheme" name="scheme" class="border rounded-lg p-2 w-full sm:w-48">
+          <option value="" data-i18n="allSchemes">With/Without Mark Scheme</option>
+          <option value="true" data-i18n="includesMarkScheme">With Mark Scheme</option>
+          <option value="false" data-i18n="noMarkScheme">Without Mark Scheme</option>
+        </select>
+      </div>
+      <div class="w-full sm:w-auto">
+        <label for="q" class="block text-sm font-medium text-gray-700" data-i18n="search">Search</label>
+        <div class="flex gap-2">
+          <input id="q" type="text" class="border rounded-lg p-2 w-full sm:w-64" aria-label="Search exams">
+          <button id="searchBtn" type="button" class="rounded-lg bg-blue-600 text-white px-4 py-2" data-i18n="search">Search</button>
+        </div>
+      </div>
     </div>
-  </section>
-
-  <!-- Results placeholders (hidden until a search triggers rendering) -->
-  <div id="count" hidden>{n} results</div>
-  <div id="grid" hidden aria-live="polite"></div>
-
-  <!-- Popular Subjects -->
-  <section class="subjects" aria-label="Popular subjects">
-    <h3 data-i18n="popular">Popular Subjects</h3>
-    <div class="subject-grid">
-      <div class="subject-card" data-subject="Mathematics">📐 Math</div>
-      <div class="subject-card" data-subject="English">📘 English</div>
-      <div class="subject-card" data-subject="Chemistry">⚛️ Chemistry</div>
-      <div class="subject-card" data-subject="Biology">🧬 Biology</div>
-      <div class="subject-card" data-subject="Physics">🔭 Physics</div>
-      <div class="subject-card" data-subject="Geography">🌍 Geography</div>
-      <div class="subject-card" data-subject="History">📜 History</div>
-    </div>
-  </section>
-
-  <footer>
-    <small>&copy; 2025 Kaaliye Exams – Helping Students Succeed</small>
+    <div id="count" class="mb-4 text-gray-600" data-i18n="results">{n} results</div>
+    <div id="grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+  </main>
+  <footer class="bg-gray-800 text-white text-center p-4">
+    <p data-i18n="footer">© Kaaliye Exams Archive. Built for students.</p>
   </footer>
-
-  <!-- Chat FAB + modal (Contact Chat) -->
-  <button id="openChatBtn" class="chat-fab" aria-label="Open contact chat">Chat</button>
-
-  <div id="chatModal" class="chat-modal hidden" role="dialog" aria-label="Contact chat">
-    <div class="chat-header">
-      <strong data-i18n="chatTitle">Contact Chat</strong>
-      <button id="closeChatBtn" aria-label="Close chat" style="background:transparent;border:0;color:#fff;cursor:pointer">✕</button>
-    </div>
-    <div id="chatBody" class="chat-body">
-      <!-- messages will appear here -->
-      <div style="color:#666;font-size:.9rem">Say hi — we’ll respond as soon as possible.</div>
-    </div>
-    <div class="chat-footer">
-      <input id="chatInput" class="chat-input" placeholder="Type a message..." aria-label="Message input" />
-      <button id="chatSend" class="btn primary">Send</button>
-    </div>
-  </div>
-
-  <!-- === External translation + app logic (use your existing files) === -->
-  <!-- You said your project already links to these — keeping the same filenames so your code remains unchanged -->
-  <script src="lang.json" defer></script>
-  <script src="app.js" defer></script>
-
-  <!-- Small glue to preserve compatibility and provide Chat UX without overwriting your handlers -->
-  <script>
-    // Ensure hidden #q exists (safety for older app.js)
-    if (!document.getElementById('q')) {
-      const q = document.createElement('input');
-      q.type = 'text'; q.id = 'q'; q.style.display = 'none'; q.setAttribute('aria-hidden','true'); document.body.appendChild(q);
-    }
-
-    // When Search button clicked: reveal results containers and let app.js handle rendering
-    document.addEventListener('DOMContentLoaded', () => {
-      const searchBtn = document.getElementById('searchBtn');
-      const countEl = document.getElementById('count');
-      const gridEl = document.getElementById('grid');
-
-      // Subject-card quick clicks: set subject + trigger search click
-      document.querySelectorAll('.subject-card').forEach(card=>{
-        card.addEventListener('click', ()=>{
-          const s = card.getAttribute('data-subject') || '';
-          const subjSelect = document.getElementById('subject');
-          // Try to match option by value or text
-          let matched = false;
-          for (const opt of subjSelect.options) {
-            if (opt.value.toLowerCase() === s.toLowerCase() || opt.text.toLowerCase() === s.toLowerCase()) {
-              opt.selected = true; matched = true; break;
-            }
-          }
-          if(!matched){
-            // append a quick option if not found
-            const o = new Option(s, s);
-            subjSelect.add(o);
-            subjSelect.value = s;
-          }
-          searchBtn.click();
-        });
-      });
-
-      if (searchBtn) {
-        searchBtn.addEventListener('click', () => {
-          // Reveal placeholders so your app.js can render into them
-          if (countEl) countEl.hidden = false;
-          if (gridEl)  gridEl.hidden  = false;
-
-          // If your app has a function to run the search directly, call it (common names used in past)
-          if (typeof window.searchExams === 'function') {
-            window.searchExams();
-          } else if (typeof window.performSearch === 'function') {
-            window.performSearch();
-          } else {
-            // Otherwise, rely on app.js listening to the button click or query params.
-            // Nothing else needed here; we won't override app.js behavior.
-          }
-        });
-      }
-
-      // Language switching links — call your existing setLang or similar if present
-      document.querySelectorAll('[data-lang]').forEach(el=>{
-        el.addEventListener('click', (e)=>{
-          e.preventDefault();
-          const lang = el.getAttribute('data-lang');
-          if (typeof window.setLang === 'function') {
-            window.setLang(lang);
-          } else if (typeof window.setLanguage === 'function') {
-            window.setLanguage(lang);
-          } else {
-            // Fallback: set document lang attribute and attempt to translate data-i18n keys if you have lang.json global
-            document.documentElement.lang = lang;
-            console.debug('Language switch requested:',lang,'but no setLang/setLanguage found in app.js.'); 
-          }
-        });
-      });
-    });
-
-    /* ===== Contact Chat UX (non-invasive) ===== */
-    const openChatBtn  = document.getElementById('openChatBtn');
-    const chatModal    = document.getElementById('chatModal');
-    const closeChatBtn = document.getElementById('closeChatBtn');
-    const chatSend     = document.getElementById('chatSend');
-    const chatInput    = document.getElementById('chatInput');
-    const chatBody     = document.getElementById('chatBody');
-
-    openChatBtn.addEventListener('click', ()=> chatModal.classList.toggle('hidden'));
-    closeChatBtn.addEventListener('click', ()=> chatModal.classList.add('hidden'));
-
-    chatSend.addEventListener('click', () => {
-      const msg = (chatInput.value || '').trim();
-      if (!msg) return;
-      // If you already implemented a contact-chat handler in your app, call it:
-      if (typeof window.handleContactMessage === 'function') {
-        window.handleContactMessage(msg);
-      } else {
-        // Otherwise display locally in the modal and clear input (simple placeholder behavior)
-        const m = document.createElement('div');
-        m.style.marginBottom = '8px';
-        m.innerHTML = `<div style="font-size:.9rem;color:#0d47a1;font-weight:600">You</div><div style="padding:8px;background:#eaf2ff;border-radius:8px">${escapeHtml(msg)}</div>`;
-        chatBody.appendChild(m);
-        chatBody.scrollTop = chatBody.scrollHeight;
-      }
-      chatInput.value = '';
-    });
-
-    // Enter to send in chat input
-    chatInput.addEventListener('keydown', (ev) => { if(ev.key === 'Enter') { ev.preventDefault(); chatSend.click(); } });
-
-    function escapeHtml(s){ return s.replace(/[&<>"']/g, c=> ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-
-  </script>
+  <script src="app.js"></script>
 </body>
 </html>
