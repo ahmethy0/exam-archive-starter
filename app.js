@@ -1,8 +1,8 @@
 const subjectEl = document.getElementById('subject');
 const yearEl = document.getElementById('year');
 const schemeEl = document.getElementById('scheme');
-const qEl = document.getElementById('q');
 const searchBtn = document.getElementById('searchBtn');
+const resetBtn = document.getElementById('resetBtn'); // new reset button
 const grid = document.getElementById('grid');
 const countEl = document.getElementById('count');
 
@@ -54,26 +54,27 @@ function updateLanguage() {
 
 // Load exams from exams.json
 async function loadExams() {
-  grid.innerHTML = '<div class="text-gray-600" data-i18n="loading">Loading...</div>';
   try {
     exams = await fetchWithRetry('/data/exams.json');
     exams = exams.filter(e => e.id && e.subject && e.year && e.title && e.file && typeof e.hasMarkScheme === 'boolean');
     initFilters();
+    grid.innerHTML = "";
+    countEl.classList.add("hidden");
   } catch (error) {
     grid.innerHTML = `<div class="text-red-600" data-i18n="error">Error loading exams: ${error.message}. Please try again later.</div>`;
     console.error('Error loading exams:', error);
   }
 }
 
-// Populate filter options
+// Populate filter options with placeholders
 function initFilters() {
   const subjects = Array.from(new Set(exams.map(i => i.subject))).sort();
   const years = Array.from(new Set(exams.map(i => i.year))).sort((a, b) => b - a);
 
-  subjectEl.innerHTML = `<option value="" data-i18n="allSubjects">${translations[currentLang]?.allSubjects || 'All Subjects'}</option>`;
-  yearEl.innerHTML = `<option value="" data-i18n="allYears">${translations[currentLang]?.allYears || 'All Years'}</option>`;
+  subjectEl.innerHTML = `<option value="" disabled selected>Select Subject</option>`;
+  yearEl.innerHTML = `<option value="" disabled selected>Select Year</option>`;
   schemeEl.innerHTML = `
-    <option value="" data-i18n="allSchemes">${translations[currentLang]?.allSchemes || 'With/Without Mark Scheme'}</option>
+    <option value="" disabled selected>Select Option</option>
     <option value="true" data-i18n="includesMarkScheme">${translations[currentLang]?.includesMarkScheme || 'With Mark Scheme'}</option>
     <option value="false" data-i18n="noMarkScheme">${translations[currentLang]?.noMarkScheme || 'Without Mark Scheme'}</option>
   `;
@@ -91,8 +92,29 @@ function initFilters() {
     yearEl.appendChild(opt);
   }
 
+  // Disable search initially
+  disableSearch();
   updateLanguage();
-  fetchExams();
+}
+
+// Enable/disable search button depending on filters
+function toggleSearchButton() {
+  const hasSelection = subjectEl.value || yearEl.value || schemeEl.value;
+  if (hasSelection) {
+    enableSearch();
+  } else {
+    disableSearch();
+  }
+}
+
+function enableSearch() {
+  searchBtn.disabled = false;
+  searchBtn.classList.remove("opacity-50", "cursor-not-allowed");
+}
+
+function disableSearch() {
+  searchBtn.disabled = true;
+  searchBtn.classList.add("opacity-50", "cursor-not-allowed");
 }
 
 // Filter and render exams
@@ -100,27 +122,28 @@ function fetchExams() {
   const filters = {
     subject: subjectEl.value,
     year: yearEl.value,
-    scheme: schemeEl.value,
-    query: qEl.value.toLowerCase()
+    scheme: schemeEl.value
   };
 
   const filtered = exams.filter(e =>
     (!filters.subject || e.subject === filters.subject) &&
     (!filters.year || e.year.toString() === filters.year) &&
-    (!filters.scheme || e.hasMarkScheme.toString() === filters.scheme) &&
-    (!filters.query || e.title.toLowerCase().includes(filters.query))
+    (!filters.scheme || e.hasMarkScheme.toString() === filters.scheme)
   );
 
   render(filtered);
   countEl.textContent = translations[currentLang]?.results?.replace('{n}', filtered.length) || `${filtered.length} results`;
+  countEl.classList.remove("hidden");
   updateLanguage();
 }
 
-// Render exam cards
+// Render exam cards (clean design)
 function render(items) {
   grid.innerHTML = '';
   if (!items.length) {
-    grid.innerHTML = `<div class="text-gray-600" data-i18n="noResults">${translations[currentLang]?.noResults || 'No exams found. Try different filters.'}</div>`;
+    grid.innerHTML = `<div class="col-span-full text-center text-gray-500 dark:text-gray-400" data-i18n="noResults">
+      No exams found. Try different filters.
+    </div>`;
     return;
   }
 
@@ -128,35 +151,42 @@ function render(items) {
     const card = document.createElement('a');
     card.href = e.file;
     card.target = "_blank";
-    card.className = 'card block rounded-2xl border bg-white p-5 shadow-sm hover:shadow-md transition focus:outline-none focus:ring-2 focus:ring-blue-600';
+    card.className = 'block rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow hover:shadow-lg hover:border-blue-500 transition';
     card.innerHTML = `
-      <div class="flex items-start justify-between">
-        <div>
-          <div class="text-xs uppercase tracking-wide text-gray-500">${e.subject}</div>
-          <div class="text-lg font-semibold mt-1">${e.title}</div>
-        </div>
-        <div class="text-sm font-semibold text-blue-600">${e.year}</div>
+      <div class="flex items-center justify-between">
+        <span class="text-sm font-medium text-blue-600 dark:text-blue-400">${e.subject}</span>
+        <span class="text-xs px-2 py-1 rounded-full ${e.hasMarkScheme ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-800 dark:text-emerald-300' : 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-400'}">
+          ${e.hasMarkScheme ? 'With Mark Scheme' : 'No Scheme'}
+        </span>
       </div>
-      <div class="mt-4 flex items-center justify-between">
-        <div class="text-sm ${e.hasMarkScheme ? 'text-emerald-600' : 'text-gray-500'}" 
-             data-i18n="${e.hasMarkScheme ? 'includesMarkScheme' : 'noMarkScheme'}">
-          ${translations[currentLang]?.[e.hasMarkScheme ? 'includesMarkScheme' : 'noMarkScheme'] || (e.hasMarkScheme ? 'Includes Mark Scheme' : 'No Mark Scheme')}
-        </div>
-        <button class="rounded-lg bg-blue-600 text-white text-sm px-3 py-2" 
-                aria-label="Download ${e.title} ${e.year}" 
-                data-i18n="download">
-          ${translations[currentLang]?.download || 'Download'}
-        </button>
-      </div>
+      <h3 class="mt-3 text-lg font-semibold">${e.title}</h3>
+      <p class="text-sm text-gray-500 dark:text-gray-400">${e.year}</p>
+      <button class="mt-4 w-full rounded-lg bg-blue-600 text-white py-2 text-sm font-medium hover:bg-blue-700">
+        Download
+      </button>
     `;
     grid.appendChild(card);
   }
 }
 
+// Reset filters
+function resetFilters() {
+  subjectEl.selectedIndex = 0;
+  yearEl.selectedIndex = 0;
+  schemeEl.selectedIndex = 0;
+  grid.innerHTML = "";
+  countEl.classList.add("hidden");
+  disableSearch();
+}
+
 // Event listeners
-[subjectEl, yearEl, schemeEl].forEach(el => el.addEventListener('change', fetchExams));
+[subjectEl, yearEl, schemeEl].forEach(el => {
+  el.addEventListener('change', toggleSearchButton);
+});
+
 searchBtn.addEventListener('click', fetchExams);
-qEl.addEventListener('keydown', e => { if (e.key === 'Enter') fetchExams(); });
+resetBtn.addEventListener('click', resetFilters);
+
 document.querySelectorAll('[data-lang]').forEach(el => {
   el.addEventListener('click', e => {
     e.preventDefault();
@@ -168,4 +198,4 @@ document.querySelectorAll('[data-lang]').forEach(el => {
 
 // Initialize
 loadTranslations();
-loadExams(); 
+loadExams();
