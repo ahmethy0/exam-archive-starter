@@ -168,4 +168,4 @@ document.querySelectorAll('[data-lang]').forEach(el => {
 
 // Initialize
 loadTranslations();
-loadExams();   here is it just fix the damn thing its not working yet
+loadExams(); 
