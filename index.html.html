@@ -1,117 +1,286 @@
-<script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-          return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
-
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
-
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
-                }
-
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
-        }
-        return gk_fileData[filename] || "";
-        }
-        </script><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Kaaliye Exams</title>
   <meta name="description" content="Kaaliye Exams Archive: Download past papers for Mathematics, English, and more in English and Somali.">
   <meta name="keywords" content="exam papers, past papers, national exams, Somalia, education">
-  <title data-i18n="title">Kaaliye EXAMS</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <meta name="google-site-verification" content="pzdkzzzhDsomKEqSvV0lVtSrW-YCoh-eNl7LcR13dEg" />
   <link rel="icon" type="image/png" href="large.png">
-<!-- Open Graph (for WhatsApp, Telegram, Facebook, etc.) -->
-<meta property="og:title" content="Kaaliye Exams">
-<meta property="og:description" content="Search and view exams easily.">
-<meta property="og:image" content="https://kaaliyeexams.vercel.app/large.png">
-<meta property="og:url" content="https://kaaliyeexams.vercel.app">
-<meta property="og:type" content="website">
 
-<!-- Twitter Card -->
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Kaaliye Exams">
-<meta name="twitter:description" content="Search and view exams easily.">
-<meta name="twitter:image" content="https://kaaliyeexams.vercel.app/large.png">
+  <!-- Open Graph -->
+  <meta property="og:title" content="Kaaliye Exams">
+  <meta property="og:description" content="Search and view exams easily.">
+  <meta property="og:image" content="https://kaaliyeexams.vercel.app/large.png">
+  <meta property="og:url" content="https://kaaliyeexams.vercel.app">
+  <meta property="og:type" content="website">
 
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Kaaliye Exams">
+  <meta name="twitter:description" content="Search and view exams easily.">
+  <meta name="twitter:image" content="https://kaaliyeexams.vercel.app/large.png">
+
+  <style>
+    /* ===== Global Reset ===== */
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: #f5f7fa;
+      color: #333;
+      line-height: 1.6;
+    }
+
+    /* ===== Navbar ===== */
+    header {
+      background: #0d47a1;
+      color: white;
+      padding: 15px 50px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+    header h1 { font-size: 1.4rem; letter-spacing: 1px; }
+    nav a {
+      margin-left: 20px;
+      text-decoration: none;
+      color: #e3f2fd;
+      font-weight: 500;
+      transition: 0.3s;
+    }
+    nav a:hover { color: #fff; }
+
+    /* ===== Hero Section ===== */
+    .hero {
+      text-align: center;
+      padding: 100px 20px 30px;
+      background: linear-gradient(135deg, #1a237e, #0d47a1);
+      color: white;
+    }
+    .hero h2 { font-size: 2.5rem; margin-bottom: 15px; }
+    .hero p { font-size: 1.1rem; margin-bottom: 30px; color: #cfd8dc; }
+
+    /* ===== Filters (no text input) ===== */
+    .filters {
+      background: white;
+      border-radius: 15px;
+      padding: 20px;
+      max-width: 900px;
+      margin: 0 auto 60px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+    }
+    .filters select, .filters button {
+      flex: 1;
+      min-width: 180px;
+      padding: 12px 15px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+    }
+    .filters button {
+      background: #0d47a1;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .filters button:hover { background: #1565c0; }
+
+    /* ===== Subjects Section ===== */
+    .subjects {
+      max-width: 1100px;
+      margin: 20px auto 70px;
+      padding: 0 20px;
+    }
+    .subjects h3 {
+      font-size: 1.8rem;
+      margin-bottom: 25px;
+      text-align: center;
+      color: #0d47a1;
+    }
+    .subject-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 25px;
+    }
+    .subject-card {
+      background: white;
+      border-radius: 15px;
+      padding: 40px 20px;
+      text-align: center;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #0d47a1;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      transition: transform 0.3s, box-shadow 0.3s;
+      cursor: pointer;
+    }
+    .subject-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+    }
+
+    /* ===== Results placeholders (hidden by default) ===== */
+    #count[hidden], #grid[hidden] { display: none; }
+    #count { text-align: center; margin: 10px 0 0; color: #555; }
+    #grid {
+      max-width: 1100px;
+      margin: 20px auto 0;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+      padding: 0 20px;
+    }
+
+    /* ===== Footer ===== */
+    footer {
+      background: #0d47a1;
+      color: white;
+      text-align: center;
+      padding: 20px;
+      margin-top: 80px;
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 768px) {
+      .hero h2 { font-size: 2rem; }
+      .filters { flex-direction: column; }
+    }
+  </style>
 </head>
-<body class="min-h-screen flex flex-col bg-gray-100">
-  <header class="bg-blue-600 text-white p-4">
-    <div class="container mx-auto flex justify-between items-center">
-      <h1 class="text-2xl font-bold" data-i18n="title">Kaaliye EXAMS</h1>
-      <div>
-        <a href="#" data-lang="en" role="button" aria-label="Switch to English" class="mr-4 hover:underline">English</a>
-        <a href="#" data-lang="so" role="button" aria-label="Switch to Somali" class="hover:underline">Somali</a>
-      </div>
-    </div>
+<body>
+
+  <!-- Navbar -->
+  <header>
+    <h1>Kaaliye Exams</h1>
+    <nav>
+      <a href="index.html.html">Home</a>
+      <a href="avoyt.html">About</a>
+      <a href="avoyt.html">Contact</a>
+    </nav>
   </header>
-  <main class="container mx-auto p-4 flex-grow">
-    <section class="my-8 text-center">
-      <h2 class="text-3xl font-bold" data-i18n="title">Kaaliye EXAMS</h2>
-      <p class="mt-2 text-gray-600" data-i18n="description">Access 10 years of past papers. Search by subject, year, or keyword.</p>
-    </section>
-    <div class="flex flex-wrap gap-4 mb-8">
-      <div class="w-full sm:w-auto">
-        <label for="subject" class="block text-sm font-medium text-gray-700" data-i18n="subject">Subject</label>
-        <select id="subject" name="subject" class="border rounded-lg p-2 w-full sm:w-48">
-          <option value="" data-i18n="allSubjects">All Subjects</option>
-        </select>
-      </div>
-      <div class="w-full sm:w-auto">
-        <label for="year" class="block text-sm font-medium text-gray-700" data-i18n="year">Year</label>
-        <select id="year" name="year" class="border rounded-lg p-2 w-full sm:w-48">
-          <option value="" data-i18n="allYears">All Years</option>
-        </select>
-      </div>
-      <div class="w-full sm:w-auto">
-        <label for="scheme" class="block text-sm font-medium text-gray-700" data-i18n="scheme">Mark Scheme</label>
-        <select id="scheme" name="scheme" class="border rounded-lg p-2 w-full sm:w-48">
-          <option value="" data-i18n="allSchemes">With/Without Mark Scheme</option>
-          <option value="true" data-i18n="includesMarkScheme">With Mark Scheme</option>
-          <option value="false" data-i18n="noMarkScheme">Without Mark Scheme</option>
-        </select>
-      </div>
-      <div class="w-full sm:w-auto">
-        <label for="q" class="block text-sm font-medium text-gray-700" data-i18n="search">Search</label>
-        <div class="flex gap-2">
-          <input id="q" type="text" class="border rounded-lg p-2 w-full sm:w-64" aria-label="Search exams">
-          <button id="searchBtn" type="button" class="rounded-lg bg-blue-600 text-white px-4 py-2" data-i18n="search">Search</button>
-        </div>
-      </div>
+
+  <!-- Hero -->
+  <section class="hero">
+    <h2>Access Past Papers Instantly</h2>
+    <p>Helping students prepare with confidence</p>
+
+    <!-- Filters kept, text search removed -->
+    <div class="filters" role="search">
+      <select id="subject" name="subject" aria-label="Select subject">
+        <option value="">All Subjects</option>
+        <!-- You can let app.js populate these dynamically -->
+      </select>
+
+      <select id="year" name="year" aria-label="Select year">
+        <option value="">All Years</option>
+      </select>
+
+      <select id="scheme" name="scheme" aria-label="With or without mark scheme">
+        <option value="">With/Without Mark Scheme</option>
+        <option value="true">With Mark Scheme</option>
+        <option value="false">Without Mark Scheme</option>
+      </select>
+
+      <button id="searchBtn" type="button">🔍 Search</button>
+
+      <!-- Hidden text input to satisfy existing app.js references -->
+      <input id="q" type="text" value="" style="display:none" aria-hidden="true" tabindex="-1" />
     </div>
-    <div id="count" class="mb-4 text-gray-600" data-i18n="results">{n} results</div>
-    <div id="grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-  </main>
-  <footer class="bg-gray-800 text-white text-center p-4">
-    <p data-i18n="footer">© Kaaliye Exams Archive. Built for students.</p>
+  </section>
+
+  <!-- Results placeholders (stay hidden until Search) -->
+  <div id="count" hidden>{n} results</div>
+  <div id="grid" hidden></div>
+
+  <!-- Popular Subjects -->
+  <section class="subjects">
+    <h3>Popular Subjects</h3>
+    <div class="subject-grid">
+      <div class="subject-card" data-subject="Mathematics">📐 Math</div>
+      <div class="subject-card" data-subject="English">📘 English</div>
+      <div class="subject-card" data-subject="Chemistry">⚛️ Chemistry</div>
+      <div class="subject-card" data-subject="Biology">🧬 Biology</div>
+      <div class="subject-card" data-subject="Physics">🔭 Physics</div>
+      <div class="subject-card" data-subject="Geography">🌍 Geography</div>
+      <div class="subject-card" data-subject="History">📜 History</div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    © 2025 Kaaliye Exams – Helping Students Succeed
   </footer>
-  <script src="app.js"></script>
+
+  <!-- === XLSX + helper functions from your previous code === -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
+  <script>
+    // Make these globals available before app.js runs
+    window.gk_isXlsx = false;
+    window.gk_xlsxFileLookup = {};
+    window.gk_fileData = {};
+    window.filledCell = function(cell){ return cell !== '' && cell != null; };
+    window.loadFileData = function(filename){
+      if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+        try {
+          var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+          var firstSheetName = workbook.SheetNames[0];
+          var worksheet = workbook.Sheets[firstSheetName];
+          var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+          var filteredData = jsonData.filter(row => row.some(filledCell));
+          var headerRowIndex = filteredData.findIndex((row, index) =>
+            row.filter(filledCell).length >= (filteredData[index + 1]?.filter(filledCell).length || 0)
+          );
+          if (headerRowIndex === -1 || headerRowIndex > 25) headerRowIndex = 0;
+          var tmpSheet = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex));
+          var csv = XLSX.utils.sheet_to_csv(tmpSheet, { header: 1 });
+          return csv;
+        } catch(e) {
+          console.error(e);
+          return "";
+        }
+      }
+      return gk_fileData[filename] || "";
+    };
+
+    // Home-specific UX: keep results hidden until the user clicks Search
+    document.addEventListener('DOMContentLoaded', function() {
+      var countEl = document.getElementById('count');
+      var gridEl  = document.getElementById('grid');
+      var btn     = document.getElementById('searchBtn');
+      var subjEl  = document.getElementById('subject');
+
+      // Subject cards quick-filter
+      document.querySelectorAll('.subject-card').forEach(card => {
+        card.addEventListener('click', () => {
+          var val = card.getAttribute('data-subject') || '';
+          if (subjEl) subjEl.value = val;
+          if (btn) btn.click();
+        });
+      });
+
+      if (btn) {
+        btn.addEventListener('click', () => {
+          // Reveal containers so your app.js can render into them
+          if (countEl) countEl.hidden = false;
+          if (gridEl)  gridEl.hidden  = false;
+        });
+      }
+    });
+
+    // Optional: if your app.js reads #q.value, ensure it’s an empty string
+    // (We already created a hidden #q above.)
+  </script>
+
+  <!-- Your existing app logic (expects #subject, #year, #scheme, #q, #searchBtn, #grid, #count) -->
+  <script src="app.js" defer></script>
 </body>
 </html>
