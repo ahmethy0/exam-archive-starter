@@ -2,7 +2,6 @@ const subjectEl = document.getElementById('subject');
 const yearEl = document.getElementById('year');
 const schemeEl = document.getElementById('scheme');
 const searchBtn = document.getElementById('searchBtn');
-const resetBtn = document.getElementById('resetBtn'); // new reset button
 const grid = document.getElementById('grid');
 const countEl = document.getElementById('count');
 
@@ -66,7 +65,7 @@ async function loadExams() {
   }
 }
 
-// Populate filter options with placeholders
+// Populate filter options
 function initFilters() {
   const subjects = Array.from(new Set(exams.map(i => i.subject))).sort();
   const years = Array.from(new Set(exams.map(i => i.year))).sort((a, b) => b - a);
@@ -92,19 +91,15 @@ function initFilters() {
     yearEl.appendChild(opt);
   }
 
-  // Disable search initially
   disableSearch();
   updateLanguage();
 }
 
-// Enable/disable search button depending on filters
+// Enable/disable search button
 function toggleSearchButton() {
   const hasSelection = subjectEl.value || yearEl.value || schemeEl.value;
-  if (hasSelection) {
-    enableSearch();
-  } else {
-    disableSearch();
-  }
+  if (hasSelection) enableSearch();
+  else disableSearch();
 }
 
 function enableSearch() {
@@ -137,8 +132,7 @@ function fetchExams() {
   updateLanguage();
 }
 
-// Render exam cards (clean design)
-// Render exam cards (modern clean design with light/dark modes)
+// Render exam cards
 function render(items) {
   grid.innerHTML = '';
   if (!items.length) {
@@ -157,7 +151,6 @@ function render(items) {
     `;
 
     card.innerHTML = `
-      <!-- Top: Subject + Badge -->
       <div class="flex items-center justify-between">
         <span class="text-sm font-semibold text-blue-600 dark:text-blue-400 flex items-center gap-1">
           📘 ${e.subject}
@@ -170,8 +163,6 @@ function render(items) {
           ${e.hasMarkScheme ? 'With Mark Scheme' : 'No Scheme'}
         </span>
       </div>
-
-      <!-- Middle: Title & Year -->
       <div class="mt-4">
         <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100 group-hover:text-blue-600">
           ${e.title}
@@ -180,8 +171,6 @@ function render(items) {
           📅 ${e.year}
         </p>
       </div>
-
-      <!-- Bottom: CTA -->
       <div class="mt-6">
         <a href="${e.file}" target="_blank"
           class="block w-full text-center rounded-xl bg-blue-600 text-white py-2 text-sm font-medium hover:bg-blue-700 transition">
@@ -189,52 +178,18 @@ function render(items) {
         </a>
       </div>
     `;
-
     grid.appendChild(card);
   });
 
   countEl.textContent = `${items.length} results`;
   countEl.classList.remove("hidden");
 }
-  for (const e of items) {
-    const card = document.createElement('a');
-    card.href = e.file;
-    card.target = "_blank";
-    card.className = 'block rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow hover:shadow-lg hover:border-blue-500 transition';
-    card.innerHTML = `
-      <div class="flex items-center justify-between">
-        <span class="text-sm font-medium text-blue-600 dark:text-blue-400">${e.subject}</span>
-        <span class="text-xs px-2 py-1 rounded-full ${e.hasMarkScheme ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-800 dark:text-emerald-300' : 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-400'}">
-          ${e.hasMarkScheme ? 'With Mark Scheme' : 'No Scheme'}
-        </span>
-      </div>
-      <h3 class="mt-3 text-lg font-semibold">${e.title}</h3>
-      <p class="text-sm text-gray-500 dark:text-gray-400">${e.year}</p>
-      <button class="mt-4 w-full rounded-lg bg-blue-600 text-white py-2 text-sm font-medium hover:bg-blue-700">
-        Download
-      </button>
-    `;
-    grid.appendChild(card);
-  }
-
-
-// Reset filters
-function resetFilters() {
-  subjectEl.selectedIndex = 0;
-  yearEl.selectedIndex = 0;
-  schemeEl.selectedIndex = 0;
-  grid.innerHTML = "";
-  countEl.classList.add("hidden");
-  disableSearch();
-}
 
 // Event listeners
 [subjectEl, yearEl, schemeEl].forEach(el => {
   el.addEventListener('change', toggleSearchButton);
 });
-
 searchBtn.addEventListener('click', fetchExams);
-resetBtn.addEventListener('click', resetFilters);
 
 document.querySelectorAll('[data-lang]').forEach(el => {
   el.addEventListener('click', e => {
@@ -248,3 +203,4 @@ document.querySelectorAll('[data-lang]').forEach(el => {
 // Initialize
 loadTranslations();
 loadExams();
+
