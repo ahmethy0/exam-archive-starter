@@ -1,6 +1,6 @@
 {
   "en": {
-    "title": "Kaaliye EXAMS",
+    "title": "Kaaliye Exams",
     "description": "Kaaliye Exams Archive: Access 10 years of past papers. Search by subject, year, or keyword.",
     "subject": "Subject",
     "year": "Year",
@@ -17,9 +17,10 @@
     "loading": "Loading...",
     "error": "Error loading exams: {message}. Please try again later.",
     "footer": "© Kaaliye Exams Archive. Built for students."
+    
   },
   "so": {
-    "title": "Kaaliye Imtixaannada",
+    "title": "keydka imtixaannada ee kaaliye",
     "description": "Kaaliye Kaydka Imtixaannada: Hel 10 sano oo waraaqo imtixaan ah. Raadi maadada, sanadka, ama erayga muhiimka ah.",
     "subject": "Maadada",
     "year": "Sanadka",
